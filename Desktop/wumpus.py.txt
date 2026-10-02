@@ -1,0 +1,77 @@
+import random
+
+# Dodecahedron cave system mapping (20 rooms, each connected to 3 others)
+caves = {
+    1: [2, 5, 8], 2: [1, 3, 10], 3: [2, 4, 12], 4: [3, 5, 14], 5: [1, 4, 6],
+    6: [5, 7, 15], 7: [6, 8, 17], 8: [1, 7, 9], 9: [8, 10, 18], 10: [2, 9, 11],
+    11: [10, 12, 19], 12: [3, 11, 13], 13: [12, 14, 20], 14: [4, 13, 16], 15: [6, 16, 19],
+    16: [14, 15, 17], 17: [7, 16, 18], 18: [9, 17, 20], 19: [11, 15, 20], 20: [13, 18, 19]
+}
+rooms = list(range(1, 21))
+player = random.choice(rooms)
+wumpus = random.choice([r for r in rooms if r != player])
+pits = random.sample([r for r in rooms if r not in [player, wumpus]], 2)
+bats = random.sample([r for r in rooms if r not in [player, wumpus] + pits], 2)
+arrows = 5
+
+print("=== HUNT THE WUMPUS (1972) ===")
+print("Find and shoot the Wumpus in its 20 room cave network without getting eaten or falling into the pits.\n")
+
+while arrows > 0:
+    print(f"\nYou are in room {player}.")
+    print(f"Tunnels lead to: {caves[player]}")
+    
+    # Check hazards in adjacent rooms
+    for adj in caves[player]:
+        if adj == wumpus: 
+            print("--> You smell something terrible nearby.")
+        if adj in pits: 
+            print("--> You feel a cold wind blowing.")
+        if adj in bats: 
+            print("--> You hear a rustling sound.")
+
+    action = input("Do You Want To (M)ove or (S)hoot? ").strip().upper()
+
+    if action == "M":
+        try:
+            next_room = int(input("Which room do you want to move to? "))
+            if next_room in caves[player]:
+                player = next_room
+                if player == wumpus:
+                    print("\nNom nom nom! The Wumpus ate you! GAME OVER.")
+                    break
+                elif player in pits:
+                    print("\nAaaaaah! You fell down a bottomless pit! GAME OVER.")
+                    break
+                elif player in bats:
+                    print("\nSuper bats pick you up and drop you into a random room!")
+                    player = random.choice(rooms)
+            else:
+                print("You can't get there from here!")
+        except ValueError:
+            print("Please enter a valid room number.")
+
+    elif action == "S":
+        try:
+            target = int(input("Shoot into which adjacent room? "))
+            if target in caves[player]:
+                if target == wumpus:
+                    print("\nYOU HIT THE WUMPUS! YOU WIN!")
+                    break
+                else:
+                    print("Your arrow clatters into the dark. You missed.")
+                    arrows -= 1
+                    # 75% chance Wumpus moves if missed
+                    if random.random() < 0.75:
+                        wumpus = random.choice(caves[wumpus])
+                        if wumpus == player:
+                            print("\nThe noise woke the Wumpus, and it stumbled right into your room and ate you! GAME OVER.")
+                            break
+            else:
+                print("That room isn't connected to yours!")
+        except ValueError:
+            print("Please enter a valid room number.")
+
+    if arrows == 0:
+        print("\nYou ran out of arrows and are trapped in the dark. GAME OVER.")
+        break	
